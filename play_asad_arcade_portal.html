@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Asad - Ultimate Gaming Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        arcade: {
+                            bg: '#0B0C10',
+                            card: '#1F2833',
+                            accent: '#66FCF1',
+                            purple: '#A855F7',
+                            pink: '#EC4899',
+                            yellow: '#F59E0B',
+                            darker: '#050608'
+                        }
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'cursive'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Arcade Effects */
+        .neon-text-cyan {
+            text-shadow: 0 0 8px rgba(102, 252, 241, 0.6), 0 0 20px rgba(102, 252, 241, 0.4);
+        }
+        .neon-text-purple {
+            text-shadow: 0 0 8px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.25), inset 0 0 15px rgba(102, 252, 241, 0.15);
+        }
+        .game-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .game-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 25px -5px rgba(168, 85, 247, 0.3);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0C10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2833;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #66FCF1;
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-arcade-bg text-gray-100 min-h-screen font-sans antialiased selection:bg-arcade-accent selection:text-black">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-30 bg-arcade-darker/90 backdrop-blur-md border-b border-purple-900/40 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="filterGames('all')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-500 to-cyan-400 p-[2px] animate-pulse">
+                    <div class="w-full h-full bg-arcade-bg rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid font-pixel text-arcade-accent text-lg">P</i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-pixel text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-arcade-accent via-purple-400 to-pink-500 neon-text-cyan">
+                        PLAY ASAD
+                    </h1>
+                    <p class="text-[10px] text-gray-400 font-rajdhani uppercase tracking-widest font-semibold">Ultimate Game Arcade</p>
+                </div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="flex flex-1 max-w-xl w-full items-center gap-2">
+                <div class="relative w-full">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search games..." 
+                        class="w-full pl-9 pr-4 py-2 bg-arcade-card border border-gray-700/60 rounded-xl text-sm text-gray-200 focus:outline-none focus:border-arcade-accent focus:ring-1 focus:ring-arcade-accent transition-all">
+                </div>
+                <button onclick="toggleSoundMaster()" id="soundToggleBtn" title="Toggle Audio Synth" 
+                    class="p-2.5 bg-arcade-card hover:bg-gray-800 border border-gray-700/60 rounded-xl text-arcade-accent transition">
+                    <i class="fa-solid fa-volume-high text-base" id="soundIcon"></i>
+                </button>
+            </div>
+
+            <!-- Stats Badge -->
+            <div class="hidden lg:flex items-center space-x-4 font-rajdhani text-sm">
+                <div class="px-3 py-1.5 rounded-lg bg-purple-950/40 border border-purple-500/30 text-purple-300 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-arcade-yellow"></i>
+                    <span>Total Games Played: <strong id="totalPlayedStat" class="text-white">0</strong></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6">
+        
+        <!-- Hero Banner / Featured Bar -->
+        <div class="relative rounded-2xl overflow-hidden mb-8 border border-purple-500/30 bg-gradient-to-r from-purple-900/30 via-arcade-card to-cyan-950/30 p-6 md:p-8">
+            <div class="relative z-10 max-w-2xl">
+                <span class="px-2.5 py-1 rounded-md text-xs font-pixel bg-arcade-accent/20 text-arcade-accent border border-arcade-accent/30 inline-block mb-3">12+ READY TO PLAY</span>
+                <h2 class="text-2xl md:text-4xl font-rajdhani font-bold text-white mb-2 tracking-wide">Ready for Instant Arcade Action?</h2>
+                <p class="text-gray-300 text-sm md:text-base mb-4 leading-relaxed">No downloads, no lag. Pick your favorite retro or casual arcade challenge and smash high scores!</p>
+                <div class="flex flex-wrap gap-2" id="categoryFilters">
+                    <!-- Dynamic Filters -->
+                </div>
+            </div>
+            <i class="fa-solid fa-gamepad absolute right-4 -bottom-6 text-9xl text-purple-500/10 pointer-events-none"></i>
+        </div>
+
+        <!-- Games Grid Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-cubes text-arcade-accent text-lg"></i>
+                <h3 class="text-lg font-bold font-rajdhani tracking-wide text-white uppercase" id="sectionTitle">All Arcade Games</h3>
+            </div>
+            <span id="gameCount" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-800 text-gray-400">12 Games</span>
+        </div>
+
+        <!-- Games Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="gamesGrid">
+            <!-- Game Cards Rendered Dynamically -->
+        </div>
+    </main>
+
+    <!-- Game Modal Container -->
+    <div id="gameModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-arcade-card border border-purple-500/40 rounded-2xl w-full max-w-4xl max-h-[96vh] flex flex-col overflow-hidden shadow-2xl relative">
+            
+            <!-- Modal Header -->
+            <div class="px-4 py-3 bg-arcade-darker border-b border-gray-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span id="modalGameIcon" class="text-xl text-arcade-accent"></span>
+                    <div>
+                        <h3 id="modalGameTitle" class="font-rajdhani font-bold text-lg text-white leading-none">Game Title</h3>
+                        <p id="modalGameCategory" class="text-[11px] text-gray-400 capitalize">Category</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="restartCurrentGame()" title="Restart Game" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 hover:text-arcade-accent transition">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button onclick="closeGameModal()" title="Close" class="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-gray-400 transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Game Canvas / Play Area -->
+            <div class="flex-1 bg-black/80 flex flex-col items-center justify-center p-2 relative min-h-[350px] sm:min-h-[440px] overflow-auto" id="gameContainer">
+                <!-- Dynamic Game Content Rendered Here -->
+            </div>
+
+            <!-- Modal Footer Controls / Stats -->
+            <div class="px-4 py-3 bg-arcade-darker border-t border-gray-800 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-1.5 text-arcade-accent">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Score: <strong id="currentScoreDisplay" class="text-white font-mono text-base">0</strong></span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 text-arcade-yellow">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Best: <strong id="bestScoreDisplay" class="text-white font-mono text-base">0</strong></span>
+                    </div>
+                </div>
+                <div class="text-gray-400 text-xs hidden sm:block" id="gameInstructions">
+                    Use Keyboard or Touch controls
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // AUDIO SYNTH & FX (Web Audio API)
+        // ==========================================
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'eat' || type === 'score') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'hit' || type === 'lose') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(250, now);
+                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'win') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.setValueAtTime(450, now + 0.08);
+                    osc.frequency.setValueAtTime(600, now + 0.16);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function toggleSoundMaster() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-base';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-base text-gray-500';
+            }
+        }
+
+        // ==========================================
+        // GAMES DEFINITION DATA
+        // ==========================================
+        const gamesData = [
+            {
+                id: 'snake',
+                name: 'Snake Game',
+                category: 'arcade',
+                icon: 'fa-staff-snake',
+                color: 'from-emerald-500 to-teal-700',
+                desc: 'Classic retro snake. Eat dots, grow long, avoid the edges & your tail!',
+                instructions: 'Use Arrow Keys or On-screen D-Pad to turn.'
+            },
+            {
+                id: 'tictactoe',
+                name: 'Tic Tac Toe AI',
+                category: 'puzzle',
+                icon: 'fa-xmarks-lines',
+                color: 'from-blue-500 to-indigo-700',
+                desc: 'Strategic 3x3 showdown against a smart AI. Get 3 in a row to win!',
+                instructions: 'Click any tile to place your X.'
+            },
+            {
+                id: 'memory',
+                name: 'Memory Card Match',
+                category: 'casual',
+                icon: 'fa-brain',
+                color: 'from-pink-500 to-rose-700',
+                desc: 'Test your brain memory! Flip cards and pair up identical emojis.',
+                instructions: 'Click cards to flip and match pairs.'
+            },
+            {
+                id: 'pong',
+                name: 'Retro Pong',
+                category: 'arcade',
+                icon: 'fa-table-tennis-paddle-ball',
+                color: 'from-cyan-500 to-blue-600',
+                desc: 'Classic table tennis! Slide your paddle to deflect the ball past AI.',
+                instructions: 'Move mouse/touch or Up/Down keys to control paddle.'
+            },
+            {
+                id: 'flappy',
+                name: 'Flappy Asad',
+                category: 'action',
+                icon: 'fa-kiwi-bird',
+                color: 'from-yellow-400 to-amber-600',
+                desc: 'Flap through endless hazardous pipes without crashing!',
+                instructions: 'Press Spacebar, Click or Tap screen to jump.'
+            },
+            {
+                id: 'whack',
+                name: 'Whack-a-Mole',
+                category: 'action',
+                icon: 'fa-hammer',
+                color: 'from-purple-500 to-fuchsia-700',
+                desc: 'Fast reflexes required! Whack moles as they pop up before time runs out.',
+                instructions: 'Click or tap moles as quickly as possible.'
+            },
+            {
+                id: 'shooter',
+                name: 'Space Shooter',
+                category: 'action',
+                icon: 'fa-shuttle-space',
+                color: 'from-violet-600 to-purple-900',
+                desc: 'Defend space! Move ship, blast falling meteors and alien invaders.',
+                instructions: 'Left/Right Keys or Drag to move. Automatic auto-fire.'
+            },
+            {
+                id: '2048',
+                name: '2048 Puzzle',
+                category: 'puzzle',
+                icon: 'fa-cubes-stacked',
+                color: 'from-amber-500 to-orange-700',
+                desc: 'Slide and merge matching number tiles to reach the 2048 tile!',
+                instructions: 'Swipe or use Arrow Keys to slide tiles in 4 directions.'
+            },
+            {
+                id: 'simon',
+                name: 'Simon Says Memory',
+                category: 'puzzle',
+                icon: 'fa-circle-nodes',
+                color: 'from-green-500 to-emerald-800',
+                desc: 'Watch the glowing color sequence carefully and repeat it back perfectly.',
+                instructions: 'Click colored buttons in the exact order played.'
+            },
+            {
+                id: 'breakout',
+                name: 'Brick Breaker',
+                category: 'arcade',
+                icon: 'fa-layer-group',
+                color: 'from-red-500 to-pink-700',
+                desc: 'Launch ball, bounce off paddle and smash all top bricks to win.',
+                instructions: 'Move mouse/touch or Arrow keys to guide paddle.'
+            },
+            {
+                id: 'typing',
+                name: 'Speed Typing Test',
+                category: 'casual',
+                icon: 'fa-keyboard',
+                color: 'from-sky-500 to-cyan-700',
+                desc: 'How fast can you type? Test your WPM typing speed & accuracy.',
+                instructions: 'Type the given sentence in the box as fast as possible.'
+            },
+            {
+                id: 'rps',
+                name: 'Rock Paper Scissors',
+                category: 'casual',
+                icon: 'fa-hand-back-fist',
+                color: 'from-teal-500 to-emerald-700',
+                desc: 'Classic quick hand battle against the AI with streak counters.',
+                instructions: 'Select Rock, Paper, or Scissors to reveal round result.'
+            }
+        ];
+
+        let currentActiveGame = null;
+        let currentGameLoopId = null;
+        let currentCategoryFilter = 'all';
+
+        // ==========================================
+        // UI CORE & PORTAL INITIALIZATION
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderGameGrid();
+            updateStatsUI();
+        });
+
+        function getHighScores() {
+            return JSON.parse(localStorage.getItem('play_asad_highscores') || '{}');
+        }
+
+        function saveHighScore(gameId, score) {
+            const scores = getHighScores();
+            if (!scores[gameId] || score > scores[gameId]) {
+                scores[gameId] = score;
+                localStorage.setItem('play_asad_highscores', JSON.stringify(scores));
+                document.getElementById('bestScoreDisplay').innerText = score;
+                renderGameGrid(); // refresh cards
+                playSound('win');
+            }
+        }
+
+        function incrementPlayedStat() {
+            let total = parseInt(localStorage.getItem('play_asad_total_played') || '0');
+            total++;
+            localStorage.setItem('play_asad_total_played', total);
+            updateStatsUI();
+        }
+
+        function updateStatsUI() {
+            const total = localStorage.getItem('play_asad_total_played') || '0';
+            document.getElementById('totalPlayedStat').innerText = total;
+        }
+
+        function renderCategories() {
+            const categories = ['all', 'arcade', 'action', 'puzzle', 'casual'];
+            const container = document.getElementById('categoryFilters');
+            container.innerHTML = categories.map(cat => `
+                <button onclick="filterGames('${cat}')" 
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-semibold capitalize transition ${currentCategoryFilter === cat ? 'bg-arcade-accent text-black font-bold' : 'bg-arcade-card hover:bg-gray-800 text-gray-300 border border-gray-700/50'}">
+                    ${cat}
+                </button>
+            `).join('');
+        }
+
+        function filterGames(cat) {
+            currentCategoryFilter = cat;
+            renderCategories();
+            renderGameGrid();
+            document.getElementById('sectionTitle').innerText = cat === 'all' ? 'All Arcade Games' : `${cat} Games`;
+        }
+
+        function handleSearch() {
+            renderGameGrid();
+        }
+
+        function renderGameGrid() {
+            const grid = document.getElementById('gamesGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const highScores = getHighScores();
+
+            const filtered = gamesData.filter(g => {
+                const matchesCat = currentCategoryFilter === 'all' || g.category === currentCategoryFilter;
+                const matchesSearch = g.name.toLowerCase().includes(searchVal) || g.desc.toLowerCase().includes(searchVal);
+                return matchesCat && matchesSearch;
+            });
+
+            document.getElementById('gameCount').innerText = `${filtered.length} Games`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-gray-500">
+                        <i class="fa-solid fa-ghost text-4xl mb-3"></i>
+                        <p>No games found matching search terms.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(game => {
+                const best = highScores[game.id] || 0;
+                return `
+                    <div class="game-card bg-arcade-card border border-gray-800 hover:border-purple-500/50 rounded-2xl p-5 flex flex-col justify-between group relative overflow-hidden">
+                        <div class="absolute -top-10 -right-10 w-28 h-28 bg-gradient-to-br ${game.color} opacity-15 rounded-full blur-xl group-hover:opacity-30 transition"></div>
+                        
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${game.color} flex items-center justify-center text-white text-xl shadow-lg">
+                                    <i class="fa-solid ${game.icon}"></i>
+                                </div>
+                                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-gray-900/80 text-gray-400 border border-gray-800">
+                                    ${game.category}
+                                </span>
+                            </div>
+                            
+                            <h4 class="font-rajdhani font-bold text-lg text-white group-hover:text-arcade-accent transition mb-1">${game.name}</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">${game.desc}</p>
+                        </div>
+
+                        <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between mt-auto">
+                            <div class="text-xs">
+                                <span class="text-gray-500">Best: </span>
+                                <strong class="text-arcade-yellow font-mono">${best}</strong>
+                            </div>
+                            <button onclick="launchGame('${game.id}')" 
+                                class="px-3.5 py-1.5 rounded-lg bg-arcade-accent/10 hover:bg-arcade-accent text-arcade-accent hover:text-black font-bold text-xs transition-all flex items-center space-x-1.5">
+                                <span>PLAY</span>
+                                <i class="fa-solid fa-play text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // MODAL & GAME CONTROLLER
+        // ==========================================
+        function launchGame(gameId) {
+            const game = gamesData.find(g => g.id === gameId);
+            if (!game) return;
+
+            currentActiveGame = gameId;
+            incrementPlayedStat();
+
+            document.getElementById('modalGameTitle').innerText = game.name;
+            document.getElementById('modalGameCategory').innerText = `${game.category} game`;
+            document.getElementById('modalGameIcon').innerHTML = `<i class="fa-solid ${game.icon}"></i>`;
+            document.getElementById('gameInstructions').innerText = game.instructions;
+            
+            const highScores = getHighScores();
+            document.getElementById('currentScoreDisplay').innerText = '0';
+            document.getElementById('bestScoreDisplay').innerText = highScores[gameId] || 0;
+
+            document.getElementById('gameModal').classList.remove('hidden');
+
+            // Launch Engine
+            initSelectedGame(gameId);
+        }
+
+        function closeGameModal() {
+            if (currentGameLoopId) {
+                cancelAnimationFrame(currentGameLoopId);
+                clearInterval(currentGameLoopId);
+                currentGameLoopId = null;
+            }
+            document.getElementById('gameModal').classList.add('hidden');
+            document.getElementById('gameContainer').innerHTML = '';
+            currentActiveGame = null;
+        }
+
+        function restartCurrentGame() {
+            if (currentActiveGame) {
+                if (currentGameLoopId) {
+                    cancelAnimationFrame(currentGameLoopId);
+                    clearInterval(currentGameLoopId);
+                }
+                document.getElementById('currentScoreDisplay').innerText = '0';
+                initSelectedGame(currentActiveGame);
+            }
+        }
+
+        function setScoreUI(score) {
+            document.getElementById('currentScoreDisplay').innerText = score;
+            if (currentActiveGame) {
+                saveHighScore(currentActiveGame, score);
+            }
+        }
+
+        function initSelectedGame(id) {
+            const container = document.getElementById('gameContainer');
+            container.innerHTML = ''; // clear previous
+
+            switch (id) {
+                case 'snake': startSnakeGame(container); break;
+                case 'tictactoe': startTicTacToe(container); break;
+                case 'memory': startMemoryGame(container); break;
+                case 'pong': startPongGame(container); break;
+                case 'flappy': startFlappyGame(container); break;
+                case 'whack': startWhackMole(container); break;
+                case 'shooter': startShooterGame(container); break;
+                case '2048': start2048Game(container); break;
+                case 'simon': startSimonGame(container); break;
+                case 'breakout': startBreakoutGame(container); break;
+                case 'typing': startTypingGame(container); break;
+                case 'rps': startRPSGame(container); break;
+            }
+        }
+
+        // ==========================================
+        // 1. SNAKE GAME
+        // ==========================================
+        function startSnakeGame(container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full max-w-md">
+                    <canvas id="snakeCanvas" width="360" height="360" class="bg-gray-900 border-2 border-arcade-accent rounded-xl shadow-lg mb-3"></canvas>
+                    <div class="grid grid-cols-3 gap-2 w-48 sm:hidden">
+                        <div></div>
+                        <button onclick="snakeDir('UP')" class="p-3 bg-gray-800 active:bg-arcade-accent active:text-black rounded-lg text-center font-bold text-lg"><i class="fa-solid fa-arrow-up"></i></button>
+                        <div></div>
+                        <button onclick="snakeDir('LEFT')" class="p-3 bg-gray-800 active:bg-arcade-accent active:text-black rounded-lg text-center font-bold text-lg"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button onclick="snakeDir('DOWN')" class="p-3 bg-gray-800 active:bg-arcade-accent active:text-black rounded-lg text-center font-bold text-lg"><i class="fa-solid fa-arrow-down"></i></button>
+                        <button onclick="snakeDir('RIGHT')" class="p-3 bg-gray-800 active:bg-arcade-accent active:text-black rounded-lg text-center font-bold text-lg"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            `;
+
+            const canvas = document.getElementById('snakeCanvas');
+            const ctx = canvas.getContext('2d');
+            const grid = 18;
+            const count = canvas.width / grid;
+
+            let snake = [{x: 10, y: 10}, {x: 10, y: 11}];
+            let food = {x: 5, y: 5};
+            let dx = 0, dy = -1;
+            let score = 0;
+            let gameOver = false;
+
+            window.snakeDir = function(dir) {
+                if (dir === 'UP' && dy === 0) { dx = 0; dy = -1; }
+                if (dir === 'DOWN' && dy === 0) { dx = 0; dy = 1; }
+                if (dir === 'LEFT' && dx === 0) { dx = -1; dy = 0; }
+                if (dir === 'RIGHT' && dx === 0) { dx = 1; dy = 0; }
+            };
+
+            function handleKey(e) {
+                if (e.key === 'ArrowUp') snakeDir('UP');
+                if (e.key === 'ArrowDown') snakeDir('DOWN');
+                if (e.key === 'ArrowLeft') snakeDir('LEFT');
+                if (e.key === 'ArrowRight') snakeDir('RIGHT');
+            }
+            window.addEventListener('keydown', handleKey);
+
+            function loop() {
+                if (gameOver) return;
+
+                // Move head
+                const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+                // Check collisions
+                if (head.x < 0 || head.x >= count || head.y < 0 || head.y >= count || snake.some(s => s.x === head.x && s.y === head.y)) {
+                    gameOver = true;
+                    playSound('lose');
+                    ctx.fillStyle = 'rgba(0,0,0,0.75)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#EC4899';
+                    ctx.font = 'bold 24px Rajdhani';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('GAME OVER!', canvas.width/2, canvas.height/2 - 10);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Inter';
+                    ctx.fillText('Click Restart to Play Again', canvas.width/2, canvas.height/2 + 20);
+                    window.removeEventListener('keydown', handleKey);
+                    return;
+                }
+
+                snake.unshift(head);
+
+                // Eat food
+                if (head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    setScoreUI(score);
+                    playSound('eat');
+                    food = {
+                        x: Math.floor(Math.random() * count),
+                        y: Math.floor(Math.random() * count)
+                    };
+                } else {
+                    snake.pop();
+                }
+
+                // Render
+                ctx.fillStyle = '#0B0C10';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Food
+                ctx.fillStyle = '#EC4899';
+                ctx.beginPath();
+                ctx.arc(food.x * grid + grid/2, food.y * grid + grid/2, grid/2 - 2, 0, Math.PI*2);
+                ctx.fill();
+
+                // Draw Snake
+                snake.forEach((part, i) => {
+                    ctx.fillStyle = i === 0 ? '#66FCF1' : '#45A29E';
+                    ctx.fillRect(part.x * grid + 1, part.y * grid + 1, grid - 2, grid - 2);
+                });
+
+                currentGameLoopId = setTimeout(loop, 100);
+            }
+
+            loop();
+        }
+
+        // ==========================================
+        // 2. TIC TAC TOE
+        // ==========================================
+        function startTicTacToe(container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center">
+                    <div class="text-sm font-semibold text-gray-300 mb-3" id="tttStatus">Your turn (X)</div>
+                    <div class="grid grid-cols-3 gap-2 bg-gray-800 p-3 rounded-2xl border border-purple-500/30" id="tttBoard">
+                        ${Array(9).fill(0).map((_, i) => `
+                            <button onclick="playTTT(${i})" class="w-20 h-20 sm:w-24 sm:h-24 bg-arcade-card hover:bg-gray-700 rounded-xl text-3xl font-pixel font-bold flex items-center justify-center transition focus:outline-none" id="tttTile-${i}"></button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            let board = Array(9).fill(null);
+            let active = true;
+            let wins = 0;
+
+            window.playTTT = function(i) {
+                if (!active || board[i]) return;
+                
+                board[i] = 'X';
+                document.getElementById(`tttTile-${i}`).innerText = 'X';
+                document.getElementById(`tttTile-${i}`).classList.add('text-arcade-accent');
+                playSound('click');
+
+                if (checkWin(board, 'X')) {
+                    document.getElementById('tttStatus').innerText = '🎉 You Win!';
+                    wins += 100;
+                    setScoreUI(wins);
+                    playSound('win');
+                    active = false;
+                    return;
+                }
+
+                if (board.every(cell => cell)) {
+                    document.getElementById('tttStatus').innerText = '🤝 Draw Game!';
+                    active = false;
+                    return;
+                }
+
+                // AI Turn
+                active = false;
+                document.getElementById('tttStatus').innerText = 'AI is thinking...';
+                
+                setTimeout(() => {
+                    let emptyIdxs = board.map((val, idx) => val === null ? idx : null).filter(v => v !== null);
+                    if (emptyIdxs.length > 0) {
+                        let aiMove = emptyIdxs[Math.floor(Math.random() * emptyIdxs.length)];
+                        board[aiMove] = 'O';
+                        document.getElementById(`tttTile-${aiMove}`).innerText = 'O';
+                        document.getElementById(`tttTile-${aiMove}`).classList.add('text-pink-500');
+
+                        if (checkWin(board, 'O')) {
+                            document.getElementById('tttStatus').innerText = '🤖 AI Won!';
+                            playSound('lose');
+                            return;
+                        }
+
+                        if (board.every(cell => cell)) {
+                            document.getElementById('tttStatus').innerText = '🤝 Draw Game!';
+                            return;
+                        }
+                    }
+                    active = true;
+                    document.getElementById('tttStatus').innerText = 'Your turn (X)';
+                }, 400);
+            };
+
+            function checkWin(b, player) {
+                const winsCombo = [
+                    [0,1,2],[3,4,5],[6,7,8],
+                    [0,3,6],[1,4,7],[2,5,8],
+                    [0,4,8],[2,4,6]
+                ];
+                return winsCombo.some(c => c.every(idx => b[idx] === player));
+            }
+        }
+
+        // ==========================================
+        // 3. MEMORY CARD MATCH
+        // ==========================================
+        function startMemoryGame(container) {
+            const emojis = ['🚀', '👾', '🎮', '🕹️', '⚡', '🔥', '💎', '🏆'];
+            let cards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+            let flipped = [];
+            let matched = [];
+            let score = 0;
+
+            container.innerHTML = `
+                <div class="grid grid-cols-4 gap-2 sm:gap-3 p-2 max-w-sm">
+                    ${cards.map((emoji, i) => `
+                        <button onclick="flipMemCard(${i})" id="memCard-${i}" 
+                            class="w-16 h-16 sm:w-20 sm:h-20 bg-arcade-card border border-purple-500/30 rounded-xl text-2xl flex items-center justify-center transition duration-300 transform font-bold">
+                            ❓
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            window.flipMemCard = function(i) {
+                if (flipped.length >= 2 || flipped.includes(i) || matched.includes(i)) return;
+
+                playSound('click');
+                flipped.push(i);
+                const btn = document.getElementById(`memCard-${i}`);
+                btn.innerText = cards[i];
+                btn.classList.add('bg-purple-900/50', 'border-arcade-accent');
+
+                if (flipped.length === 2) {
+                    const [first, second] = flipped;
+                    if (cards[first] === cards[second]) {
+                        matched.push(first, second);
+                        flipped = [];
+                        score += 20;
+                        setScoreUI(score);
+                        playSound('score');
+
+                        if (matched.length === cards.length) {
+                            playSound('win');
+                        }
+                    } else {
+                        setTimeout(() => {
+                            [first, second].forEach(idx => {
+                                const b = document.getElementById(`memCard-${idx}`);
+                                b.innerText = '❓';
+                                b.classList.remove('bg-purple-900/50', 'border-arcade-accent');
+                            });
+                            flipped = [];
+                        }, 800);
+                    }
+                }
+            };
+        }
+
+        // ==========================================
+        // 4. PONG GAME
+        // ==========================================
+        function startPongGame(container) {
+            container.innerHTML = `<canvas id="pongCanvas" width="450" height="300" class="bg-gray-900 border-2 border-purple-500 rounded-xl"></canvas>`;
+            const canvas = document.getElementById('pongCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let paddleH = 60, paddleW = 10;
+            let playerY = canvas.height/2 - paddleH/2;
+            let aiY = canvas.height/2 - paddleH/2;
+            let ballX = canvas.width/2, ballY = canvas.height/2;
+            let ballSpeedX = 4, ballSpeedY = 3;
+            let score = 0;
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                playerY = e.clientY - rect.top - paddleH/2;
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if(e.touches.length > 0) {
+                    const rect = canvas.getBoundingClientRect();
+                    playerY = e.touches[0].clientY - rect.top - paddleH/2;
+                }
+            });
+
+            function render() {
+                // Ball Movement
+                ballX += ballSpeedX;
+                ballY += ballSpeedY;
+
+                // Wall Bounce
+                if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+
+                // AI Paddle Movement
+                if (aiY + paddleH/2 < ballY - 10) aiY += 3;
+                else if (aiY + paddleH/2 > ballY + 10) aiY -= 3;
+
+                // Player Paddle Bounce
+                if (ballX <= paddleW && ballY >= playerY && ballY <= playerY + paddleH) {
+                    ballSpeedX *= -1.05;
+                    score += 10;
+                    setScoreUI(score);
+                    playSound('eat');
+                }
+
+                // AI Paddle Bounce
+                if (ballX >= canvas.width - paddleW && ballY >= aiY && ballY <= aiY + paddleH) {
+                    ballSpeedX *= -1;
+                }
+
+                // Reset on Miss
+                if (ballX <= 0) {
+                    playSound('lose');
+                    ballX = canvas.width/2;
+                    ballY = canvas.height/2;
+                    ballSpeedX = 4;
+                } else if (ballX >= canvas.width) {
+                    playSound('score');
+                    ballX = canvas.width/2;
+                    ballY = canvas.height/2;
+                    ballSpeedX = -4;
+                }
+
+                // Draw
+                ctx.fillStyle = '#0B0C10';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Paddles
+                ctx.fillStyle = '#66FCF1';
+                ctx.fillRect(0, playerY, paddleW, paddleH);
+                ctx.fillStyle = '#EC4899';
+                ctx.fillRect(canvas.width - paddleW, aiY, paddleW, paddleH);
+
+                // Ball
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(ballX, ballY, 6, 0, Math.PI*2);
+                ctx.fill();
+
+                currentGameLoopId = requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // ==========================================
+        // 5. FLAPPY ASAD
+        // ==========================================
+        function startFlappyGame(container) {
+            container.innerHTML = `<canvas id="flappyCanvas" width="340" height="400" class="bg-slate-900 border-2 border-arcade-accent rounded-xl cursor-pointer"></canvas>`;
+            const canvas = document.getElementById('flappyCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let birdY = 180, gravity = 0.35, lift = -7, velocity = 0;
+            let pipes = [];
+            let score = 0;
+            let frame = 0;
+            let gameOver = false;
+
+            function flap() {
+                if (gameOver) return;
+                velocity = lift;
+                playSound('click');
+            }
+
+            canvas.addEventListener('click', flap);
+
+            function render() {
+                if (gameOver) return;
+
+                frame++;
+                velocity += gravity;
+                birdY += velocity;
+
+                // Spawn Pipes
+                if (frame % 90 === 0) {
+                    let gap = 100;
+                    let topH = Math.floor(Math.random() * (canvas.height - gap - 60)) + 30;
+                    pipes.push({ x: canvas.width, top: topH, bottom: canvas.height - topH - gap });
+                }
+
+                // Move Pipes
+                pipes.forEach(p => p.x -= 2);
+                pipes = pipes.filter(p => p.x > -40);
+
+                // Check Collisions
+                if (birdY <= 0 || birdY >= canvas.height) gameOver = true;
+
+                pipes.forEach(p => {
+                    if (p.x < 50 && p.x + 35 > 20) {
+                        if (birdY < p.top || birdY > canvas.height - p.bottom) {
+                            gameOver = true;
+                        }
+                    }
+                    if (p.x === 20) {
+                        score += 10;
+                        setScoreUI(score);
+                        playSound('score');
+                    }
+                });
+
+                if (gameOver) {
+                    playSound('lose');
+                    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#EC4899';
+                    ctx.font = 'bold 22px Rajdhani';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('CRASHED!', canvas.width/2, canvas.height/2);
+                    return;
+                }
+
+                // Render Background & Bird
+                ctx.fillStyle = '#0F172A';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Pipes
+                ctx.fillStyle = '#10B981';
+                pipes.forEach(p => {
+                    ctx.fillRect(p.x, 0, 35, p.top);
+                    ctx.fillRect(p.x, canvas.height - p.bottom, 35, p.bottom);
+                });
+
+                // Bird
+                ctx.fillStyle = '#F59E0B';
+                ctx.beginPath();
+                ctx.arc(35, birdY, 10, 0, Math.PI*2);
+                ctx.fill();
+
+                currentGameLoopId = requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // ==========================================
+        // 6. WHACK-A-MOLE
+        // ==========================================
+        function startWhackMole(container) {
+            let score = 0;
+            let activeHole = -1;
+            let timeLeft = 30;
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="text-sm font-bold text-gray-300 mb-3">Time Left: <span id="moleTimer" class="text-arcade-accent">30</span>s</div>
+                    <div class="grid grid-cols-3 gap-3 bg-gray-900 p-4 rounded-2xl border border-gray-800">
+                        ${Array(9).fill(0).map((_, i) => `
+                            <button onclick="whackMole(${i})" id="moleBtn-${i}" 
+                                class="w-20 h-20 sm:w-24 sm:h-24 bg-gray-800 rounded-2xl text-3xl flex items-center justify-center border-2 border-gray-700 transition active:scale-95">
+                                🕳️
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            const timer = setInterval(() => {
+                timeLeft--;
+                const timerEl = document.getElementById('moleTimer');
+                if (timerEl) timerEl.innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    clearInterval(popInterval);
+                    playSound('win');
+                }
+            }, 1000);
+
+            const popInterval = setInterval(() => {
+                if (activeHole !== -1) {
+                    const prev = document.getElementById(`moleBtn-${activeHole}`);
+                    if (prev) prev.innerText = '🕳️';
+                }
+                activeHole = Math.floor(Math.random() * 9);
+                const current = document.getElementById(`moleBtn-${activeHole}`);
+                if (current) current.innerText = '🐹';
+            }, 700);
+
+            window.whackMole = function(i) {
+                if (i === activeHole) {
+                    score += 10;
+                    setScoreUI(score);
+                    playSound('score');
+                    document.getElementById(`moleBtn-${i}`).innerText = '💥';
+                    activeHole = -1;
+                }
+            };
+
+            currentGameLoopId = timer;
+        }
+
+        // ==========================================
+        // 7. SPACE SHOOTER
+        // ==========================================
+        function startShooterGame(container) {
+            container.innerHTML = `<canvas id="shooterCanvas" width="360" height="400" class="bg-black border-2 border-purple-600 rounded-xl cursor-crosshair"></canvas>`;
+            const canvas = document.getElementById('shooterCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let playerX = canvas.width / 2;
+            let bullets = [];
+            let enemies = [];
+            let score = 0;
+            let gameOver = false;
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                playerX = e.clientX - rect.left;
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    const rect = canvas.getBoundingClientRect();
+                    playerX = e.touches[0].clientX - rect.left;
+                }
+            });
+
+            let frame = 0;
+            function render() {
+                if (gameOver) return;
+
+                frame++;
+                if (frame % 12 === 0) {
+                    bullets.push({ x: playerX, y: canvas.height - 30 });
+                    playSound('click');
+                }
+
+                if (frame % 40 === 0) {
+                    enemies.push({ x: Math.random() * (canvas.width - 20), y: 0, speed: Math.random() * 1.5 + 1 });
+                }
+
+                // Move Bullets
+                bullets.forEach(b => b.y -= 5);
+                bullets = bullets.filter(b => b.y > 0);
+
+                // Move Enemies
+                enemies.forEach(e => e.y += e.speed);
+
+                // Bullet Collision
+                bullets.forEach((b, bi) => {
+                    enemies.forEach((e, ei) => {
+                        if (Math.abs(b.x - e.x) < 15 && Math.abs(b.y - e.y) < 15) {
+                            score += 10;
+                            setScoreUI(score);
+                            playSound('hit');
+                            bullets.splice(bi, 1);
+                            enemies.splice(ei, 1);
+                        }
+                    });
+                });
+
+                // Player Hit Check
+                enemies.forEach(e => {
+                    if (e.y >= canvas.height - 30 && Math.abs(e.x - playerX) < 20) {
+                        gameOver = true;
+                    }
+                });
+
+                if (gameOver) {
+                    playSound('lose');
+                    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#EC4899';
+                    ctx.font = 'bold 22px Rajdhani';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('SHIP DESTROYED!', canvas.width/2, canvas.height/2);
+                    return;
+                }
+
+                // Render
+                ctx.fillStyle = '#050510';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Ship
+                ctx.fillStyle = '#66FCF1';
+                ctx.beginPath();
+                ctx.moveTo(playerX, canvas.height - 30);
+                ctx.lineTo(playerX - 12, canvas.height - 10);
+                ctx.lineTo(playerX + 12, canvas.height - 10);
+                ctx.fill();
+
+                // Bullets
+                ctx.fillStyle = '#F59E0B';
+                bullets.forEach(b => ctx.fillRect(b.x - 2, b.y, 4, 8));
+
+                // Enemies
+                ctx.fillStyle = '#EC4899';
+                enemies.forEach(e => ctx.fillRect(e.x, e.y, 16, 16));
+
+                currentGameLoopId = requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // ==========================================
+        // 8. 2048 PUZZLE
+        // ==========================================
+        function start2048Game(container) {
+            let grid = Array(4).fill(0).map(() => Array(4).fill(0));
+            let score = 0;
+
+            function addRandomTile() {
+                let empty = [];
+                for (let r=0; r<4; r++) {
+                    for (let c=0; c<4; c++) {
+                        if (grid[r][c] === 0) empty.push({r, c});
+                    }
+                }
+                if (empty.length > 0) {
+                    let {r, c} = empty[Math.floor(Math.random() * empty.length)];
+                    grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+                }
+            }
+
+            addRandomTile();
+            addRandomTile();
+
+            function renderBoard() {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="grid grid-cols-4 gap-2 bg-gray-900 p-3 rounded-2xl border border-gray-800">
+                            ${grid.map(row => row.map(val => `
+                                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center font-bold text-lg ${val ? 'bg-purple-600 text-white shadow' : 'bg-gray-800 text-transparent'}">
+                                    ${val || ''}
+                                </div>
+                            `).join('')).join('')}
+                        </div>
+                        <p class="text-xs text-gray-400 mt-3">Use Arrow Keys to Slide Tiles</p>
+                    </div>
+                `;
+            }
+
+            function slide(row) {
+                let arr = row.filter(val => val);
+                for (let i = 0; i < arr.length - 1; i++) {
+                    if (arr[i] === arr[i + 1]) {
+                        arr[i] *= 2;
+                        score += arr[i];
+                        setScoreUI(score);
+                        playSound('eat');
+                        arr[i + 1] = 0;
+                    }
+                }
+                arr = arr.filter(val => val);
+                while (arr.length < 4) arr.push(0);
+                return arr;
+            }
+
+            function handleKey(e) {
+                let old = JSON.stringify(grid);
+                if (e.key === 'ArrowLeft') {
+                    grid = grid.map(row => slide(row));
+                } else if (e.key === 'ArrowRight') {
+                    grid = grid.map(row => slide(row.reverse()).reverse());
+                } else if (e.key === 'ArrowUp') {
+                    for (let c=0; c<4; c++) {
+                        let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+                        col = slide(col);
+                        for (let r=0; r<4; r++) grid[r][c] = col[r];
+                    }
+                } else if (e.key === 'ArrowDown') {
+                    for (let c=0; c<4; c++) {
+                        let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+                        col = slide(col.reverse()).reverse();
+                        for (let r=0; r<4; r++) grid[r][c] = col[r];
+                    }
+                }
+                if (old !== JSON.stringify(grid)) {
+                    addRandomTile();
+                    renderBoard();
+                }
+            }
+
+            window.addEventListener('keydown', handleKey);
+            renderBoard();
+        }
+
+        // ==========================================
+        // 9. SIMON SAYS MEMORY
+        // ==========================================
+        function startSimonGame(container) {
+            const colors = ['red', 'blue', 'green', 'yellow'];
+            let sequence = [];
+            let playerStep = 0;
+            let score = 0;
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="grid grid-cols-2 gap-3 p-4 bg-gray-900 rounded-2xl">
+                        <button onclick="simonClick('red')" id="simon-red" class="w-24 h-24 bg-red-600 rounded-2xl opacity-80 active:opacity-100 transition"></button>
+                        <button onclick="simonClick('blue')" id="simon-blue" class="w-24 h-24 bg-blue-600 rounded-2xl opacity-80 active:opacity-100 transition"></button>
+                        <button onclick="simonClick('green')" id="simon-green" class="w-24 h-24 bg-green-600 rounded-2xl opacity-80 active:opacity-100 transition"></button>
+                        <button onclick="simonClick('yellow')" id="simon-yellow" class="w-24 h-24 bg-yellow-500 rounded-2xl opacity-80 active:opacity-100 transition"></button>
+                    </div>
+                </div>
+            `;
+
+            function nextRound() {
+                playerStep = 0;
+                sequence.push(colors[Math.floor(Math.random() * 4)]);
+                playSequence();
+            }
+
+            function playSequence() {
+                let i = 0;
+                const timer = setInterval(() => {
+                    flashColor(sequence[i]);
+                    i++;
+                    if (i >= sequence.length) clearInterval(timer);
+                }, 600);
+            }
+
+            function flashColor(col) {
+                const btn = document.getElementById(`simon-${col}`);
+                if (btn) {
+                    btn.classList.add('brightness-150', 'scale-105');
+                    playSound('click');
+                    setTimeout(() => btn.classList.remove('brightness-150', 'scale-105'), 300);
+                }
+            }
+
+            window.simonClick = function(col) {
+                flashColor(col);
+                if (col === sequence[playerStep]) {
+                    playerStep++;
+                    if (playerStep === sequence.length) {
+                        score += 10;
+                        setScoreUI(score);
+                        setTimeout(nextRound, 800);
+                    }
+                } else {
+                    playSound('lose');
+                    sequence = [];
+                    setTimeout(nextRound, 1000);
+                }
+            };
+
+            nextRound();
+        }
+
+        // ==========================================
+        // 10. BRICK BREAKER
+        // ==========================================
+        function startBreakoutGame(container) {
+            container.innerHTML = `<canvas id="breakCanvas" width="360" height="320" class="bg-gray-900 border-2 border-cyan-500 rounded-xl"></canvas>`;
+            const canvas = document.getElementById('breakCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let paddleWidth = 65, paddleHeight = 10;
+            let paddleX = (canvas.width - paddleWidth) / 2;
+            let x = canvas.width / 2, y = canvas.height - 30;
+            let dx = 2, dy = -2;
+            let score = 0;
+
+            const rowCount = 4, colCount = 5, brickW = 58, brickH = 15, padding = 8, offsetTop = 20, offsetLeft = 18;
+            let bricks = [];
+            for (let c=0; c<colCount; c++) {
+                bricks[c] = [];
+                for (let r=0; r<rowCount; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1 };
+                }
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                paddleX = e.clientX - rect.left - paddleWidth / 2;
+            });
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw Bricks
+                for (let c=0; c<colCount; c++) {
+                    for (let r=0; r<rowCount; r++) {
+                        if (bricks[c][r].status === 1) {
+                            let bx = c * (brickW + padding) + offsetLeft;
+                            let by = r * (brickH + padding) + offsetTop;
+                            bricks[c][r].x = bx;
+                            bricks[c][r].y = by;
+                            ctx.fillStyle = '#A855F7';
+                            ctx.fillRect(bx, by, brickW, brickH);
+                        }
+                    }
+                }
+
+                // Ball collision with bricks
+                for (let c=0; c<colCount; c++) {
+                    for (let r=0; r<rowCount; r++) {
+                        let b = bricks[c][r];
+                        if (b.status === 1) {
+                            if (x > b.x && x < b.x + brickW && y > b.y && y < b.y + brickH) {
+                                dy = -dy;
+                                b.status = 0;
+                                score += 10;
+                                setScoreUI(score);
+                                playSound('eat');
+                            }
+                        }
+                    }
+                }
+
+                // Wall bounce
+                if (x + dx > canvas.width - 8 || x + dx < 8) dx = -dx;
+                if (y + dy < 8) dy = -dy;
+                else if (y + dy > canvas.height - 15) {
+                    if (x > paddleX && x < paddleX + paddleWidth) {
+                        dy = -dy;
+                        playSound('click');
+                    } else {
+                        playSound('lose');
+                        return;
+                    }
+                }
+
+                x += dx; y += dy;
+
+                // Paddle
+                ctx.fillStyle = '#66FCF1';
+                ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+
+                // Ball
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI*2);
+                ctx.fill();
+
+                currentGameLoopId = requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // ==========================================
+        // 11. SPEED TYPING TEST
+        // ==========================================
+        function startTypingGame(container) {
+            const sentences = [
+                "The quick brown fox jumps over the lazy arcade dog.",
+                "Play Asad is the ultimate multi game portal experience.",
+                "Fast reflexes and precision keyboard skills lead to high scores."
+            ];
+
+            const target = sentences[Math.floor(Math.random() * sentences.length)];
+            let startTime = null;
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center max-w-md w-full p-4">
+                    <p class="text-sm sm:text-base font-semibold text-arcade-accent bg-gray-900 p-4 rounded-xl mb-4 border border-gray-800" id="targetSentence">${target}</p>
+                    <textarea id="typingInput" rows="3" oninput="checkTyping()" placeholder="Start typing here..." 
+                        class="w-full bg-arcade-card border border-purple-500/40 rounded-xl p-3 text-sm focus:outline-none focus:border-arcade-accent text-white"></textarea>
+                    <div class="mt-3 text-sm font-bold text-arcade-yellow" id="wpmDisplay">WPM: 0</div>
+                </div>
+            `;
+
+            window.checkTyping = function() {
+                if (!startTime) startTime = new Date();
+                const input = document.getElementById('typingInput').value;
+
+                if (input === target) {
+                    const elapsedMin = (new Date() - startTime) / 60000;
+                    const wpm = Math.round((target.split(' ').length) / elapsedMin);
+                    document.getElementById('wpmDisplay').innerText = `🎉 Finished! Speed: ${wpm} WPM`;
+                    setScoreUI(wpm);
+                    playSound('win');
+                }
+            };
+        }
+
+        // ==========================================
+        // 12. ROCK PAPER SCISSORS
+        // ==========================================
+        function startRPSGame(container) {
+            let score = 0;
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="text-center mb-6">
+                        <span class="text-xs text-gray-400 block mb-1">Choose your hand:</span>
+                        <div class="flex space-x-3">
+                            <button onclick="playRPS('🪨')" class="w-16 h-16 bg-gray-800 hover:bg-purple-900/50 rounded-2xl text-2xl border border-gray-700 transition">🪨</button>
+                            <button onclick="playRPS('📄')" class="w-16 h-16 bg-gray-800 hover:bg-purple-900/50 rounded-2xl text-2xl border border-gray-700 transition">📄</button>
+                            <button onclick="playRPS('✂️')" class="w-16 h-16 bg-gray-800 hover:bg-purple-900/50 rounded-2xl text-2xl border border-gray-700 transition">✂️</button>
+                        </div>
+                    </div>
+                    <div class="text-center font-bold text-lg text-white" id="rpsResult">First to play!</div>
+                </div>
+            `;
+
+            window.playRPS = function(playerChoice) {
+                const choices = ['🪨', '📄', '✂️'];
+                const aiChoice = choices[Math.floor(Math.random() * 3)];
+                const resultDiv = document.getElementById('rpsResult');
+
+                if (playerChoice === aiChoice) {
+                    resultDiv.innerText = `Tie! Both picked ${playerChoice}`;
+                } else if (
+                    (playerChoice === '🪨' && aiChoice === '✂️') ||
+                    (playerChoice === '📄' && aiChoice === '🪨') ||
+                    (playerChoice === '✂️' && aiChoice === '📄')
+                ) {
+                    score += 10;
+                    setScoreUI(score);
+                    playSound('score');
+                    resultDiv.innerText = `You Won! ${playerChoice} beats ${aiChoice}`;
+                } else {
+                    playSound('lose');
+                    resultDiv.innerText = `AI Won! ${aiChoice} beats ${playerChoice}`;
+                }
+            };
+        }
+    </script>
+</body>
+</html>
